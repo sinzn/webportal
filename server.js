@@ -185,7 +185,7 @@ app.get('/links', auth, async (req, res) => {
           <tr>
             <td class="url-cell"><a href="${formattedUrl}" target="_blank" rel="noopener noreferrer" class="url-link" title="${item.url}">${item.url}</a></td>
             <td style="text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.linkDetails || '-'}</td>
-            <td><button class="copy-btn" onclick="navigator.clipboard.writeText('${item.url}')">Copy</button></td>
+            <td><button class="copy-btn" onclick="navigator.clipboard.writeText('${item.url.replace(/'/g, "\\'")}')">Copy</button></td>
             <td><a href="/links/delete/${item._id}" class="delete-btn" onclick="return confirm('Delete link?')">delete</a></td>
           </tr>
         `;
@@ -263,13 +263,14 @@ app.get('/passwords', auth, async (req, res) => {
       <tbody>
         ${entries.length ? entries.map(item => {
           const formattedUrl = item.url.startsWith('http') ? item.url : 'https://' + item.url;
+          const copyPwd = (item.password || '').replace(/'/g, "\\'");
           return `
           <tr>
             <td style="text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.website || '-'}</td>
             <td class="url-cell"><a href="${formattedUrl}" target="_blank" rel="noopener noreferrer" class="url-link" title="${item.url}">${item.url}</a></td>
             <td style="text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.username || '-'}</td>
             <td>
-              <button class="copy-btn" onclick="navigator.clipboard.writeText('${item.url}')">Copy</button>
+              <button class="copy-btn" onclick="navigator.clipboard.writeText('${copyPwd}')">Copy</button>
               <a href="/passwords/delete/${item._id}" class="delete-btn" onclick="return confirm('Delete entry?')">delete</a>
             </td>
           </tr>
