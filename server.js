@@ -423,3 +423,6 @@ app.get('/admin/delete-user/:id', adminAuth, async (req, res) => {
 app.get('/', (req, res) => res.redirect('/links'));
 
 app.listen(process.env.PORT || 3000, () => console.log('Server running on port 3000'));
+
+
+
