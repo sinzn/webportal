@@ -301,7 +301,7 @@ app.get('/passwords', auth, async (req, res) => {
           <tr>
             <td style="text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.website || '-'}</td>
             <td class="url-cell"><a href="${formattedUrl}" target="_blank" rel="noopener noreferrer" class="url-link" title="${item.url}">${item.url}</a></td>
-            <td class="user-cell" title="${item.username \vert{}\vert{} ''}">${item.username || '-'}</td>
+			<td class="user-cell" title="${item.username || ''}">${item.username || '-'}</td>
             <td>
               <button class="copy-btn" onclick="navigator.clipboard.writeText('${decryptedPwd}')">Copy</button>
               <a href="/passwords/delete/${item._id}" class="delete-btn" onclick="return confirm('Delete entry?')">delete</a>
