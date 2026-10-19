@@ -69,7 +69,7 @@ const commonStyle = `
     .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px; color: #333; text-decoration: none; border-radius: 6px; font-size: 14px; margin-bottom: 5px; }
     .nav-item:hover, .nav-item.active { background: #e8f0fe; color: #1a73e8; font-weight: bold; }
     .main-content { flex: 1; padding: 30px; display: flex; justify-content: center; }
-    .container { width: 100%; max-width: 650px; background: #fff; border: 2px solid #2b6cb0; border-radius: 8px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); box-sizing: border-box; height: fit-content; }
+    .container { width: 100%; max-width: 750px; background: #fff; border: 2px solid #2b6cb0; border-radius: 8px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); box-sizing: border-box; height: fit-content; }
     .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
     h2 { margin: 0; font-size: 22px; font-weight: bold; color: #000; }
     .user-info { font-size: 12px; color: #555; }
@@ -83,6 +83,7 @@ const commonStyle = `
     th, td { border: 1px solid #e0e0e0; padding: 8px; text-align: center; }
     th { font-weight: bold; background: #fff; }
     .url-cell { text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-cell { text-align: left; word-break: break-all; white-space: normal; }
     .url-link { color: #3b82f6; text-decoration: none; }
     .copy-btn { color: #2e7d32; font-style: italic; cursor: pointer; background: none; border: none; font-size: 13px; }
     .delete-btn { color: #e53e3e; font-style: italic; text-decoration: none; font-size: 13px; }
@@ -197,12 +198,12 @@ app.get('/links', auth, async (req, res) => {
         <button type="submit" class="btn-save">Save Link</button>
       </div>
     </form>
-    <input type="text" id="liveSearch" value="${search}" placeholder="Type to search..." class="input-box" style="margin-bottom: 12px;" oninput="filterTable()">
+    <input type="text" id="liveSearch" value="${search}" placeholder="Type to search all pages..." class="input-box" style="margin-bottom: 12px;" oninput="serverSearch('links')">
     <table id="linksTable">
       <thead>
         <tr>
-          <th style="width: 45%;">URL</th>
-          <th style="width: 25%;">Link Details</th>
+          <th style="width: 40%;">URL</th>
+          <th style="width: 30%;">Link Details</th>
           <th style="width: 15%;">Copy</th>
           <th style="width: 15%;">Delete</th>
         </tr>
@@ -223,10 +224,13 @@ app.get('/links', auth, async (req, res) => {
     </table>
     <div class="pagination">${pageLinks}</div>
     <script>
-      function filterTable() {
-        const input = document.getElementById('liveSearch').value.toLowerCase();
-        const rows = document.querySelectorAll('#linksTable tbody tr');
-        rows.forEach(row => { row.style.display = row.innerText.toLowerCase().includes(input) ? '' : 'none'; });
+      let searchTimeout;
+      function serverSearch(route) {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+          const query = document.getElementById('liveSearch').value;
+          window.location.href = '/' + route + '?search=' + encodeURIComponent(query);
+        }, 400);
       }
     </script>
   `;
@@ -243,7 +247,7 @@ app.get('/links/delete/:id', auth, async (req, res) => {
   res.redirect('/links');
 });
 
-// 2. PASSWORD MANAGER APP (ENCRYPTED STORAGE)
+// 2. PASSWORD MANAGER APP
 app.get('/passwords', auth, async (req, res) => {
   const page = parseInt(req.query.page) || 1, search = req.query.search || '';
   const isMobile = /mobile|android|iphone|ipad|tablet/i.test(req.headers['user-agent'] || '');
@@ -279,13 +283,13 @@ app.get('/passwords', auth, async (req, res) => {
         <button type="submit" class="btn-save">Save Entry</button>
       </div>
     </form>
-    <input type="text" id="liveSearch" value="${search}" placeholder="Type to search..." class="input-box" style="margin-bottom: 12px;" oninput="filterTable()">
+    <input type="text" id="liveSearch" value="${search}" placeholder="Type to search all pages..." class="input-box" style="margin-bottom: 12px;" oninput="serverSearch('passwords')">
     <table id="entriesTable">
       <thead>
         <tr>
-          <th style="width: 22%;">Website</th>
-          <th style="width: 38%;">Link</th>
-          <th style="width: 22%;">Username</th>
+          <th style="width: 20%;">Website</th>
+          <th style="width: 32%;">Link</th>
+          <th style="width: 30%;">Username</th>
           <th style="width: 18%;">Actions</th>
         </tr>
       </thead>
@@ -297,7 +301,7 @@ app.get('/passwords', auth, async (req, res) => {
           <tr>
             <td style="text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.website || '-'}</td>
             <td class="url-cell"><a href="${formattedUrl}" target="_blank" rel="noopener noreferrer" class="url-link" title="${item.url}">${item.url}</a></td>
-            <td style="text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.username || '-'}</td>
+            <td class="user-cell">${item.username || '-'}</td>
             <td>
               <button class="copy-btn" onclick="navigator.clipboard.writeText('${decryptedPwd}')">Copy</button>
               <a href="/passwords/delete/${item._id}" class="delete-btn" onclick="return confirm('Delete entry?')">delete</a>
@@ -309,10 +313,20 @@ app.get('/passwords', auth, async (req, res) => {
     </table>
     <div class="pagination">${pageLinks}</div>
     <script>
-      function filterTable() {
-        const input = document.getElementById('liveSearch').value.toLowerCase();
-        const rows = document.querySelectorAll('#entriesTable tbody tr');
-        rows.forEach(row => { row.style.display = row.innerText.toLowerCase().includes(input) ? '' : 'none'; });
+      let searchTimeout;
+      function serverSearch(route) {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+          const query = document.getElementById('liveSearch').value;
+          window.location.href = '/' + route + '?search=' + encodeURIComponent(query);
+        }, 400);
+      }
+      
+      // Auto-focus cursor at the end of search box
+      const sInput = document.getElementById('liveSearch');
+      if (sInput.value) {
+        sInput.focus();
+        sInput.setSelectionRange(sInput.value.length, sInput.value.length);
       }
     </script>
   `;
